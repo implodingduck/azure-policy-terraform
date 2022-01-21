@@ -21,8 +21,17 @@ resource "azurerm_management_group" "mg" {
   display_name = "mg-tfdemo"
 }
 
+
+
 data "azurerm_policy_set_definition" "builtin" {
   display_name = "NIST SP 800-53 Rev. 5"
+}
+
+data "template_file" "parameters" {
+  template = file("${path.module}/NIST-parameters.json")
+  vars = {
+
+  }
 }
 
 resource "azurerm_management_group_policy_assignment" "example" {
@@ -30,6 +39,8 @@ resource "azurerm_management_group_policy_assignment" "example" {
   location             = "East US"
   policy_definition_id = data.azurerm_policy_set_definition.builtin.id
   management_group_id  = azurerm_management_group.mg.id
+  enforce = true
+  parameters = data.template_file.parameters.rendered
   identity {
     type = "SystemAssigned"
   }
